@@ -21,7 +21,7 @@ from actor_critic import *
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
-LOAD = False
+LOAD = True
 
 #=============#
 # ENVIRONMENT #
@@ -74,7 +74,7 @@ likelihood = dist.log_prob(torch.FloatTensor(action.transpose()).to(device))
 #===========#
 update_freq = 10
 epoch = 1
-max_epochs = 200
+max_epochs = 10
 batch_size = int(1000/update_freq)  # Better to call it num_steps
 mini_batch_size = int(batch_size/10)
 ppo_epochs = 4
