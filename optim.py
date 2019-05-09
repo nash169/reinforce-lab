@@ -21,7 +21,7 @@ from actor_critic import *
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
-LOAD = True
+LOAD = False
 
 #=============#
 # ENVIRONMENT #
@@ -91,6 +91,8 @@ mask_log = np.array([1])[:, np.newaxis].transpose()
 likelihood_log = likelihood.cpu().detach().numpy()
 action_log = action.transpose()
 value_log = value.cpu().detach().numpy()
+actor_loss_log = []
+value_loss_log = []
 
 reward_mean = []
 
@@ -160,19 +162,23 @@ while epoch <= max_epochs:
 
         advantage = returns - value_log[int(-batch_size):-1]
 
-        ppo_update(agent,
-                   optimizer,
-                   ppo_epochs,
-                   mini_batch_size,
-                   torch.FloatTensor(
-                       state_log[int(-batch_size):-1]).to(device),
-                   torch.FloatTensor(
-                       action_log[int(-batch_size):-1]).to(device),
-                   torch.FloatTensor(
-                       likelihood_log[int(-batch_size):-1]).to(device),
-                   torch.FloatTensor(returns).to(device),
-                   torch.FloatTensor(advantage).to(device))
-
+        actor_loss, value_loss = ppo_update(agent,
+                                            optimizer,
+                                            ppo_epochs,
+                                            mini_batch_size,
+                                            torch.FloatTensor(
+                                                state_log[int(-batch_size):-1]).to(device),
+                                            torch.FloatTensor(
+                                                action_log[int(-batch_size):-1]).to(device),
+                                            torch.FloatTensor(
+                                                likelihood_log[int(-batch_size):-1]).to(device),
+                                            torch.FloatTensor(
+                                                returns).to(device),
+                                            torch.FloatTensor(advantage).to(device))
+        actor_loss_log = np.append(
+            actor_loss_log, actor_loss.cpu().detach().numpy())
+        value_loss_log = np.append(
+            value_loss_log, value_loss.cpu().detach().numpy())
         entropy = 0
 
 torch.save(agent, 'storage/agent.pt')
@@ -180,4 +186,6 @@ torch.save(agent, 'storage/agent.pt')
 np.save('storage/reward.npy', reward_mean)
 np.save('storage/epochs.npy', np.arange(1, epoch))
 
-plt.plot(np.arange(1, epoch), reward_mean)
+# plt.plot(np.arange(1, epoch), reward_mean)
+
+plt.plot(np.arange(len(actor_loss_log)), actor_loss_log)
