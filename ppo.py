@@ -10,7 +10,7 @@ from torch.distributions import Normal
 
 
 def compute_gae(next_value, rewards, masks, values, gamma=0.99, tau=0.95):
-    values = np.append(values, next_value, axis=0)
+    values = values + [next_value]
     gae = 0
     returns = []
     for step in reversed(range(len(rewards))):

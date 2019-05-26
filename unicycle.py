@@ -1,42 +1,41 @@
 #!/usr/bin/env python
 
 # Import modules
-import numpy as np
-import math as mt
-
-# Import classes
-from state import *
 from dynamics import *
+
 
 class Unicycle(Dynamics):
     # Model variables
-    L_ = 2       # Vehicle length
-    v_0_ = 1     # Vehicle speed
+    L_ = 2.       # Vehicle length
+    v_0_ = 1.     # Vehicle speed
+    input_dim_ = 1
+    state_dim_ = 3
 
-    def __init__(self, dyn_freq=1000):
+    def __init__(self, dyn_freq=1000, num_envs=1):
         self.name_ = self.__class__.__name__
 
-        Dynamics.__init__(self, dyn_freq)
-        
+        Dynamics.__init__(self, dyn_freq, num_envs)
+
         # Create unicycle state [x y theta] (position & velocity same dimension)
-        self.state_ = State(3,3)
-        
+        # Velocity not considered at this stage because it still a kinematics
+        self.state_ = np.zeros(self.num_envs_, self.state_dim_)
+
         # init input vector [u]
-        self.input_ = np.zeros(1)
+        self.input_ = np.zeros(self.num_envs_, self.input_dim_)
 
     def Update(self):
-        self.state_.velocity[0] = self.v_0_*mt.cos(self.state_.position[2])
-        self.state_.velocity[1] = self.v_0_*mt.sin(self.state_.position[2])
-        self.state_.velocity[2] = self.v_0_/self.L_*mt.tan(self.input_[0])
+        self.state_[:, 0] += self.v_0_*np.cos(self.state_[:, 2])
+        self.state_[:, 1] += self.v_0_*np.sin(self.state_[:, 2])
+        self.state_[:, 2] += self.v_0_/self.L_*np.tan(self.input_)
 
-        self.state_.position = self.state_.position + self.dt_*self.state_.velocity
-    
-    def Reset(self):
-        self.state_.position[:-1] = np.random.uniform(low=-10,high=10,size=(2,1))
-        self.state_.position[-1] = np.random.uniform(low=0,high=2*mt.pi,size=(1,1))
-        self.state_.velocity = np.zeros((3,1))
+    def Reset(self, status=True):
+        self.state_[status, :-1] = np.random.uniform(
+            low=-10, high=10, size=(np.sum(status), self.state_dim_-1))
+        self.state_[
+            status, -1] = np.random.uniform(low=0, high=2*np.pi, size=(np.sum(status), 1))
 
     def Reward(self, desired_state):
-        r = mt.pow(np.linalg.norm(self.state_.postion[:-1] - desired_state), 2)
+        r = norm(self.state_[:, :-1] -
+                 desired_state.repeat(self.num_envs_, axis=0), axis=1)**2
 
-        return r
+        return r[:, np.newaxis]
