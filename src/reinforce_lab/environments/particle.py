@@ -2,6 +2,7 @@
 
 # Import modules
 from dynamics import *
+from kernels import rbf
 
 
 class Particle(Dynamics):
@@ -31,8 +32,13 @@ class Particle(Dynamics):
         self.state_[status, :] = np.random.uniform(
             low=-10, high=10, size=(np.sum(status), self.state_dim_))
 
+    # def Reward(self, desired_state):
+    #     r = norm(self.state_ -
+    #              desired_state.repeat(self.num_envs_, axis=0), axis=1)**2
+
+    #     return r[:, np.newaxis]
+
     def Reward(self, desired_state):
-        r = norm(self.state_ -
-                 desired_state.repeat(self.num_envs_, axis=0), axis=1)**2
+        r, _ = rbf(self.state_, desired_state)
 
         return r[:, np.newaxis]

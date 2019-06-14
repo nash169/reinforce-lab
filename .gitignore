@@ -106,5 +106,5 @@ venv.bak/
 # VScode
 .vscode
 
-# Simulation data
-storage/*
+*.pt
+*.npy

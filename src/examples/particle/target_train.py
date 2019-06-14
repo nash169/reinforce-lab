@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+import sys
+sys.path.insert(0, '../../reinforce_lab/')
+
 # Import modules
 import matplotlib.pyplot as plt
 
-from particle import *
-from ppo import ppo_update, compute_gae
-from actor_critic import *
+from environments.particle import *
+from optimizers.ppo import ppo_update, compute_gae
+from agents.actor_critic import *
 
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -44,7 +47,7 @@ sensor_freq = 0
 
 if LOAD:
     # Load the Actor-Critic agent
-    agent = torch.load('storage/agent.pt')
+    agent = torch.load('agent.pt')
     agent.eval()
 else:
     def init_weights(self, m):
@@ -72,7 +75,7 @@ mini_batch_size = 20
 # Number of epochs for which running the optimizer
 ppo_epochs = 5
 # Learning rate
-lr = 3e-5
+lr = 3e-6
 # Set optimizer to Adam
 optimizer = optim.Adam(agent.parameters(), lr=lr)
 
@@ -81,6 +84,7 @@ optimizer = optim.Adam(agent.parameters(), lr=lr)
 #========#
 states = []
 rewards = []
+reward_means = []
 masks = []
 log_policies = []
 actions = []
@@ -154,13 +158,21 @@ for epoch in range(epochs):
 
     actor_losses.append(actor_loss.cpu().detach().numpy())
     value_losses.append(value_loss.cpu().detach().numpy())
+    reward_means.append(np.mean(torch.cat(rewards[-int(num_steps+1):]).cpu().detach().numpy()))
     entropy = 0
 
 
-torch.save(agent, 'storage/agent.pt')
-np.save('storage/actor_losses.npy', actor_losses)
+torch.save(agent, 'agent.pt')
+np.save('actor_losses.npy', actor_losses)
 
 fig = plt.figure()
 ax = fig.gca()
 ax.plot(range(len(actor_losses)), actor_losses)
+plt.title("Actor Loss")
+
+fig = plt.figure()
+ax = fig.gca()
+ax.plot(range(len(reward_means)), reward_means)
+plt.title("Mean reward per epoch")
+
 plt.show()
