@@ -108,3 +108,6 @@ venv.bak/
 
 *.pt
 *.npy
+
+# macOS file
+.DS_Store
