@@ -1,14 +1,12 @@
 #!/usr/bin/env python
-
 import sys
 sys.path.insert(0, '../../reinforce_lab/')
 
-# Import modules
 import matplotlib.pyplot as plt
 
-from environments.particle import *
-from optimizers.ppo import ppo_update, compute_gae
 from agents.actor_critic import *
+from optimizers.ppo import ppo_update, compute_gae
+from environments.particle import *
 
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -19,7 +17,7 @@ LOAD = False
 # ENVIRONMENT #
 #=============#
 # Number of environments
-num_envs = 10
+num_envs = 50
 # hz - dynamics integration frequency (the trajectory parametrization frequency should match this one)
 dyn_freq = 1000
 # s - Better defined as the maximum time to reach the goal (in trajectory tracking needs more explanation)
@@ -31,7 +29,7 @@ t = np.zeros(num_envs)
 # Create the environment
 env = Particle(num_envs)
 # Initial state
-state = np.zeros((num_envs, 2))
+state = np.zeros((num_envs, 4))
 # Set the initial postion (velocity is not needed if there is no dynamics)
 env.SetState(state)
 # Goal of the particle
@@ -56,7 +54,7 @@ else:
             nn.init.constant_(m.bias, 0.1)
 
     # Actor network with 2 inputs (position) and 2 outputs (particle trust)
-    agent = ActorCritic(2, 2, 20).to(device)
+    agent = ActorCritic(4, 2, 20).to(device)
 
 
 # Initial agent outputs
@@ -67,9 +65,9 @@ next_action = np.zeros((num_envs, 2))
 # OPTIMIZER #
 #===========#
 # Total number of epochs
-epochs = 100
+epochs = 500
 # Number of steps before calling the optimizer
-num_steps = 100
+num_steps = 200
 # Size of the minibatch
 mini_batch_size = 20
 # Number of epochs for which running the optimizer
@@ -117,7 +115,7 @@ for epoch in range(epochs):
 
         # Calculate the ending states
         state_to_reset = (t % (T*dyn_freq) == 0)*(t != 0) + \
-            np.any(np.absolute(state) >= limits, axis=1)
+            np.any(np.absolute(state[:,0:2]) >= limits, axis=1)
         mask = state_to_reset*1
 
         # Record step t
@@ -158,7 +156,8 @@ for epoch in range(epochs):
 
     actor_losses.append(actor_loss.cpu().detach().numpy())
     value_losses.append(value_loss.cpu().detach().numpy())
-    reward_means.append(np.mean(torch.cat(rewards[-int(num_steps+1):]).cpu().detach().numpy()))
+    reward_means.append(
+        np.mean(torch.cat(rewards[-int(num_steps+1):]).cpu().detach().numpy()))
     entropy = 0
 
 

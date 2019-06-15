@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 
 class ActorCritic(nn.Module):
-    def __init__(self, num_inputs, num_outputs, hidden_size, std=0.0):
+    def __init__(self, num_inputs, num_outputs, hidden_size, std=0.5):
         super(ActorCritic, self).__init__()
         
         self.critic = nn.Sequential(

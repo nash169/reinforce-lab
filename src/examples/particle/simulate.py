@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import sys
-sys.path.insert(0, '../reinforce_lab/')
+sys.path.insert(0, '../../reinforce_lab/')
 
 # Import modules
-from particle import *
-from actor_critic import *
+from environments.particle import *
+from agents.actor_critic import *
 from render_env import *
 
 use_cuda = torch.cuda.is_available()
@@ -23,7 +23,7 @@ limits = np.array([10, 10])
 # AGENT #
 #=======#
 if LOAD:
-    agent = torch.load('storage/agent.pt')
+    agent = torch.load('agent.pt')
     agent.eval()
 else:
     def init_weights(self, m):

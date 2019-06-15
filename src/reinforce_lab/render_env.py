@@ -31,12 +31,12 @@ class RenderEnv(animation.FuncAnimation):
         self.limits_ = limits
 
         self.t_ = np.zeros(1)
-        self.env_.Reset()
+        self.env_.Reset([True])
         self.state_ = self.env_.GetState()
         self.action_ = np.zeros((1, self.env_.input_dim_))
         self.next_action_ = np.zeros((1, self.env_.input_dim_))
 
-        self.state_log_ = np.array([]).reshape(0, self.env_.state_dim_)
+        self.state_log_ = np.array([]).reshape(0, 2*self.env_.state_dim_)
 
         self.patch_ = plt.Circle((5, 5), 0.5, fc='y')
         self.traj_, = ax.plot([], [], '--b', label='trajectory', lw=2)
@@ -64,7 +64,7 @@ class RenderEnv(animation.FuncAnimation):
 
         self.state_ = self.env_.GetState()
         state_to_reset = (self.t_ % (self.T_*self.dyn_freq_) == 0)*(self.t_ != 0) + \
-            np.any(np.absolute(self.state_) >= self.limits_, axis=1)
+            np.any(np.absolute(self.state_[:,0:2]) >= self.limits_, axis=1)
 
         # Record step t
         self.state_log_ = np.append(self.state_log_, self.state_, axis=0)
