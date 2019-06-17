@@ -29,7 +29,8 @@ t = np.zeros(num_envs)
 # Create the environment
 env = Particle(num_envs)
 # Initial state
-state = np.zeros((num_envs, 4))
+env.Reset(np.ones(num_envs, dtype=bool)) 
+state = env.GetState() # state = np.zeros((num_envs, 4))
 # Set the initial postion (velocity is not needed if there is no dynamics)
 env.SetState(state)
 # Goal of the particle
@@ -54,7 +55,7 @@ else:
             nn.init.constant_(m.bias, 0.1)
 
     # Actor network with 2 inputs (position) and 2 outputs (particle trust)
-    agent = ActorCritic(4, 2, 20).to(device)
+    agent = ActorCritic(4, 2).to(device)
 
 
 # Initial agent outputs
@@ -71,9 +72,9 @@ num_steps = 200
 # Size of the minibatch
 mini_batch_size = 20
 # Number of epochs for which running the optimizer
-ppo_epochs = 5
+ppo_epochs = 4
 # Learning rate
-lr = 3e-6
+lr = 1e-6
 # Set optimizer to Adam
 optimizer = optim.Adam(agent.parameters(), lr=lr)
 
