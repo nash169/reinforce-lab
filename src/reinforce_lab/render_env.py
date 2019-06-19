@@ -63,8 +63,26 @@ class RenderEnv(animation.FuncAnimation):
             act_to_update, :]
 
         self.state_ = self.env_.GetState()
-        state_to_reset = (self.t_ % (self.T_*self.dyn_freq_) == 0)*(self.t_ != 0) + \
+        if self.t_ % (self.T_*self.dyn_freq_) == 0 and self.t_ != 0:
+            state_to_reset = [True]
+            print('Time exceeded')
+        elif np.any(np.absolute(self.state_[:,0:2]) >= self.limits_, axis=1):
+            state_to_reset = [True]
+            print('Boundaries exceeded')
+        else:
+            state_to_reset = [False]
+
+        expected = (self.t_ % (self.T_*self.dyn_freq_) == 0)*(self.t_ != 0) + \
             np.any(np.absolute(self.state_[:,0:2]) >= self.limits_, axis=1)
+
+        if expected != state_to_reset:
+            print(state_to_reset, expected)  
+
+        if state_to_reset[0]:
+            print(self.t_)
+            print(np.absolute(self.state_[:,0:2]))
+
+        # print(state_to_reset)
 
         # Record step t
         self.state_log_ = np.append(self.state_log_, self.state_, axis=0)
@@ -85,6 +103,6 @@ class RenderEnv(animation.FuncAnimation):
         self.traj_.set_data(self.state_log_[:, 0], self.state_log_[:, 1])
 
         if state_to_reset:
-            self.state_log_ = np.array([]).reshape(0, self.env_.state_dim_)
+            self.state_log_ = np.array([]).reshape(0, 2*self.env_.state_dim_)
 
         return self.patch_, self.traj_, self.goal_

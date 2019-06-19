@@ -11,17 +11,17 @@ from environments.particle import *
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
-LOAD = False
+LOAD = True
 
 #=============#
 # ENVIRONMENT #
 #=============#
 # Number of environments
-num_envs = 50
+num_envs = 100
 # hz - dynamics integration frequency (the trajectory parametrization frequency should match this one)
 dyn_freq = 1000
 # s - Better defined as the maximum time to reach the goal (in trajectory tracking needs more explanation)
-T = 10
+T = 20
 # Physical environment boundaries
 limits = np.array([10, 10])
 # Time vector
@@ -70,11 +70,11 @@ epochs = 500
 # Number of steps before calling the optimizer
 num_steps = 200
 # Size of the minibatch
-mini_batch_size = 20
+mini_batch_size = 50
 # Number of epochs for which running the optimizer
-ppo_epochs = 4
+ppo_epochs = 5
 # Learning rate
-lr = 1e-6
+lr = 3e-2
 # Set optimizer to Adam
 optimizer = optim.Adam(agent.parameters(), lr=lr)
 

@@ -31,7 +31,7 @@ else:
             nn.init.normal_(m.weight, mean=0., std=0.1)
             nn.init.constant_(m.bias, 0.1)
 
-    agent = ActorCritic(4, 2, 20).to(device)
+    agent = ActorCritic(4, 2).to(device)
 
 #===========#
 # ANIMATION #

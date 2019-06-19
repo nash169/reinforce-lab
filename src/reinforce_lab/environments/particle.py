@@ -2,7 +2,9 @@
 
 # Import modules
 from dynamics import *
-from kernels import rbf
+
+from scipy.linalg import norm
+from numpy.matlib import repmat
 
 
 class Particle(Dynamics):
@@ -26,7 +28,7 @@ class Particle(Dynamics):
         state_dot = np.repeat(
             np.array([[self.alpha_, self.beta_]]), self.num_envs_, axis=0)*self.input_
         self.state_[:, 0:2] += self.dt_*state_dot
-        self.state_[:, 2:4] += state_dot
+        self.state_[:, 2:4] = state_dot
 
     def Reset(self, status):
         self.state_[status, 0:2] = np.random.uniform(
@@ -35,9 +37,20 @@ class Particle(Dynamics):
             low=-1, high=1, size=(np.sum(status), self.state_dim_))
 
     def Reward(self, desired_state):
-        r, _ = rbf(self.state_[:, 0:2], desired_state)
+        r, _ = rbf(self.state_[:, 0:2], desired_state, 1.)
 
         return r[:, np.newaxis]
+
+    def rbf(self, x, y, sigma=5.):
+        X = repmat(x, y.shape[0], 1)
+        Y = y.repeat(x.shape[0], axis=0)
+
+        k = np.exp(-norm(X - Y, axis=1)**2 /
+                2/sigma**2)
+
+        dk = (X - Y)/2/sigma**2*k[:, np.newaxis]
+
+        return k, dk
 
     # def Reward(self, desired_state):
     #     r = norm(self.state_ -
